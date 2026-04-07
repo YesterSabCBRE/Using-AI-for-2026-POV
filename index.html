@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WX POV — How We Built This With AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #004438;
+    --green-bright: #00B04F;
+    --green-dark: #003333;
+    --off-white: #F5F5F5;
+    --charcoal: #1a1a1a;
+    --mid-gray: #6b6b6b;
+    --light-border: #e0e0e0;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--off-white);
+    color: var(--charcoal);
+    font-family: var(--sans);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--green-deep);
+    color: white;
+    padding: 80px 72px 72px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: rgba(0,176,79,0.08);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  .hero-label::before {
+    content: '';
+    display: inline-block;
+    width: 40px; height: 2px;
+    background: var(--green-bright);
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 500;
+    line-height: 1.1;
+    max-width: 780px;
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: #a8d5b5;
+  }
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.65);
+    max-width: 560px;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+  }
+  .hero-byline {
+    margin-top: 48px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .hero-byline-dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--green-bright);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: white;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .hero-byline-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+  }
+  .hero-byline-text span {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── SECTION WRAPPER ── */
+  .section {
+    padding: 72px;
+  }
+  .section-alt {
+    background: white;
+  }
+  .section-dark {
+    background: var(--green-dark);
+    color: white;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .section-label::before {
+    content: '';
+    display: inline-block;
+    width: 40px; height: 2px;
+    background: var(--green-bright);
+  }
+  .section-dark .section-label { color: var(--green-bright); }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 500;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .section-dark h2 { color: white; }
+
+  .intro-text {
+    font-size: 17px;
+    color: var(--mid-gray);
+    max-width: 640px;
+    line-height: 1.7;
+    margin-bottom: 56px;
+  }
+  .section-dark .intro-text { color: rgba(255,255,255,0.6); }
+
+  /* ── PROCESS TIMELINE ── */
+  .timeline {
+    position: relative;
+    padding-left: 0;
+    display: grid;
+    gap: 0;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 28px; top: 0; bottom: 0;
+    width: 1px;
+    background: var(--light-border);
+  }
+  .tl-item {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 0 28px;
+    padding-bottom: 48px;
+    position: relative;
+  }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-node {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--off-white);
+    border: 2px solid var(--light-border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--green-deep);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .tl-node.active {
+    background: var(--green-deep);
+    border-color: var(--green-deep);
+    color: white;
+  }
+  .tl-node.highlight {
+    background: var(--green-bright);
+    border-color: var(--green-bright);
+    color: white;
+  }
+  .tl-content {
+    padding-top: 12px;
+  }
+  .tl-tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    margin-bottom: 6px;
+  }
+  .tl-content h3 {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--charcoal);
+    margin-bottom: 10px;
+  }
+  .tl-content p {
+    font-size: 14px;
+    color: var(--mid-gray);
+    line-height: 1.7;
+    max-width: 580px;
+  }
+  .tl-content .payload {
+    margin-top: 16px;
+    padding: 20px 24px;
+    background: var(--off-white);
+    border-left: 3px solid var(--green-bright);
+    border-radius: 0 6px 6px 0;
+  }
+  .tl-content .payload p {
+    font-size: 13px;
+    color: var(--charcoal);
+    font-style: italic;
+    line-height: 1.65;
+    margin-bottom: 8px;
+  }
+  .tl-content .payload p:last-child { margin-bottom: 0; }
+
+  /* ── WHAT I SHARED ── */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2px;
+    margin-top: 8px;
+  }
+  .input-card {
+    background: rgba(255,255,255,0.06);
+    padding: 28px 28px 32px;
+    border-top: 2px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .input-card:hover { border-top-color: var(--green-bright); }
+  .input-card .ic-num {
+    font-family: var(--serif);
+    font-size: 40px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.12);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .input-card h4 {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    margin-bottom: 10px;
+  }
+  .input-card p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.65;
+  }
+  .input-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .input-card ul li {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    padding: 4px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .input-card ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--green-bright);
+    font-size: 11px;
+  }
+
+  /* ── POV THEMES ── */
+  .themes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    margin-top: 8px;
+  }
+  @media (max-width: 680px) {
+    .themes-grid { grid-template-columns: 1fr; }
+    .section { padding: 48px 28px; }
+    .hero { padding: 52px 28px; }
+  }
+  .theme-card {
+    background: white;
+    padding: 36px 36px 40px;
+    border-bottom: 3px solid var(--off-white);
+    transition: border-bottom-color 0.2s;
+  }
+  .theme-card:hover { border-bottom-color: var(--green-bright); }
+  .theme-num {
+    font-family: var(--serif);
+    font-size: 56px;
+    font-weight: 500;
+    color: var(--off-white);
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+  .theme-card h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--green-deep);
+    line-height: 1.25;
+    margin-bottom: 12px;
+  }
+  .theme-card p {
+    font-size: 13px;
+    color: var(--mid-gray);
+    line-height: 1.7;
+  }
+
+  /* ── AI PARTNERSHIP CALLOUT ── */
+  .callout-strip {
+    background: var(--green-bright);
+    padding: 52px 72px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: center;
+  }
+  .callout-strip h2 {
+    font-family: var(--serif);
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 500;
+    color: var(--green-deep);
+    line-height: 1.2;
+  }
+  .callout-strip p {
+    font-size: 14px;
+    color: rgba(0,68,56,0.75);
+    max-width: 560px;
+    line-height: 1.65;
+    margin-top: 10px;
+  }
+  .callout-badge {
+    background: var(--green-deep);
+    color: white;
+    padding: 18px 24px;
+    text-align: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .callout-badge strong {
+    display: block;
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .callout-badge span {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* ── WHAT'S NEXT ── */
+  .next-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 8px;
+  }
+  @media (max-width: 720px) {
+    .next-grid { grid-template-columns: 1fr; }
+    .callout-strip { grid-template-columns: 1fr; }
+  }
+  .next-card {
+    background: var(--green-deep);
+    padding: 32px;
+    color: white;
+  }
+  .next-card.dim { background: #032e24; }
+  .next-card .nc-icon {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  .next-card h4 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .next-card p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.65;
+  }
+  .status-pill {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-top: 14px;
+  }
+  .pill-done { background: var(--green-bright); color: var(--green-deep); }
+  .pill-next { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--charcoal);
+    padding: 36px 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer .f-logo {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: white;
+  }
+  footer .f-note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-label">CBRE Americas Consulting — WX Practice</div>
+  <h1>How <em>AI helped us build</em> the 2026 Workplace Point of View</h1>
+  <p class="hero-sub">A behind-the-scenes look at the human–AI collaboration process that shaped this year's WX POV — from raw thinking to structured strategy.</p>
+  <div class="hero-byline">
+    <div class="hero-byline-dot">YS</div>
+    <div class="hero-byline-text">
+      <strong>Yester Sabondzhyan</strong>
+      <span>Sr. Director, CBRE Americas Consulting — Workplace &nbsp;|&nbsp; Los Angeles</span>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: THE PREMISE -->
+<section class="section section-alt">
+  <div class="section-label">The Premise</div>
+  <h2>Strategy starts with conversation.</h2>
+  <p class="intro-text">The 2026 WX POV didn't begin with a blank deck. It began with a dialogue — between a senior strategist and an AI collaborator. Here's how we worked through it, step by step.</p>
+
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-node active">1</div>
+      <div class="tl-content">
+        <div class="tl-tag">Context Setting</div>
+        <h3>I introduced myself and the project</h3>
+        <p>The session opened with me sharing who I am, where I sit within CBRE, and what we were trying to build — a forward-looking Workplace POV document to frame CBRE's position heading into 2026.</p>
+        <div class="payload">
+          <p>"Sr. Director, CBRE Americas Consulting, Workplace team — based in Los Angeles. We're building a 2026 WX POV. Four themes. Needs to ladder back to CBRE methodology and brand."</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-node active">2</div>
+      <div class="tl-content">
+        <div class="tl-tag">Brand System Upload</div>
+        <h3>I shared the CBRE brand and methodology DNA</h3>
+        <p>Rather than working from scratch, I uploaded the Q1 2026 Proposal Template and Workplace Policy document directly into the project. Claude extracted the brand system — colors, typography, layout conventions — and the CBRE methodology framework.</p>
+        <div class="payload">
+          <p>Extracted: Deep forest green #004438, bright green #00B04F, off-white #F5F5F5 — plus serif/sans type pairing, split layouts, green rule conventions, and the CBRE WX Venn diagram framework.</p>
+          <p>Methodology captured: The Why / The Who / The What / The How — Research → Strategy → Recommendations process — 300K+ employees surveyed, 11K C-suite leaders interviewed.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-node active">3</div>
+      <div class="tl-content">
+        <div class="tl-tag">POV Theme Development</div>
+        <h3>We brought the whiteboard session — and refined the four buckets together</h3>
+        <p>I shared the output from a live team whiteboard session — four potential theme buckets we'd already identified. Claude helped us work through the language, tighten the logic, and fine-tune each theme until they held together as a coherent point of view rather than a loose collection of ideas.</p>
+        <div class="payload">
+          <p>Starting point: four rough buckets from the whiteboard. End point: four distinct, strategically grounded themes — each with its own claim, internal logic, and connection to CBRE's methodology.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-node active">4</div>
+      <div class="tl-content">
+        <div class="tl-tag">Slide Architecture</div>
+        <h3>We agreed on a slide structure</h3>
+        <p>We evaluated two structural options and landed on Option B — a consistent four-part format per POV slide: theme headline, why it matters now, CBRE methodology connection, and a visual element drawn from CBRE's existing framework language.</p>
+        <div class="payload">
+          <p>Structure per slide: POV Theme Headline → Supporting context / why now → CBRE methodology connection → Visual from CBRE framework language.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-node highlight">5</div>
+      <div class="tl-content">
+        <div class="tl-tag">Session Summary & Knowledge Base</div>
+        <h3>I captured the session as a structured brief</h3>
+        <p>At the close of the working session, I wrote a full session summary and uploaded it to the Claude Project. This ensures continuity — every future session in this project starts from an informed baseline, not zero.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SECTION: WHAT I SHARED -->
+<section class="section section-dark">
+  <div class="section-label">The Inputs</div>
+  <h2>What I brought to the collaboration.</h2>
+  <p class="intro-text">AI is only as useful as the context you give it. Here's what made this session work.</p>
+
+  <div class="inputs-grid">
+    <div class="input-card">
+      <div class="ic-num">01</div>
+      <h4>My Identity & Role</h4>
+      <p>Seniority, practice, geography, and position within CBRE's Advisory & Transaction Services — so every output was calibrated to the right voice and audience.</p>
+    </div>
+    <div class="input-card">
+      <div class="ic-num">02</div>
+      <h4>Brand System Files</h4>
+      <ul>
+        <li>CBRE Proposal Template Q1 2026</li>
+        <li>CBRE Workplace Policy Q1 2026</li>
+        <li>Case study samples (Herbalife, Braze)</li>
+        <li>Future of Work 2.0 research doc</li>
+      </ul>
+    </div>
+    <div class="input-card">
+      <div class="ic-num">03</div>
+      <h4>The 4 POV Themes</h4>
+      <ul>
+        <li>People are the point</li>
+        <li>Growth doesn't happen by accident</li>
+        <li>Autonomy is the new attendance policy</li>
+        <li>The office just got a new job description</li>
+      </ul>
+    </div>
+    <div class="input-card">
+      <div class="ic-num">04</div>
+      <h4>Structural Decisions</h4>
+      <p>My choice of Option B for slide architecture, the agreed four-part format per theme, and the decision to anchor each slide to CBRE's existing methodology language.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: THE FOUR THEMES -->
+<section class="section">
+  <div class="section-label">The Output — 4 POV Themes</div>
+  <h2>The themes we landed on.</h2>
+  <p class="intro-text">Each theme is a strategic claim about the direction of workplace in 2026 — rooted in CBRE's research, methodology, and the lived experience of the workforce.</p>
+
+  <div class="themes-grid">
+    <div class="theme-card">
+      <div class="theme-num">01</div>
+      <h3>People are the point — everything else is infrastructure</h3>
+      <p>A reframe for how organizations should think about their investments. Space, tech, and services exist to serve people — not the other way around. This theme anchors the entire POV.</p>
+    </div>
+    <div class="theme-card">
+      <div class="theme-num">02</div>
+      <h3>Growth doesn't happen by accident</h3>
+      <p>Career development, mentorship, and skill-building require intentional design. The workplace has a specific role to play in creating conditions where growth is visible, accessible, and expected.</p>
+    </div>
+    <div class="theme-card">
+      <div class="theme-num">03</div>
+      <h3>Autonomy is the new attendance policy</h3>
+      <p>The debate has shifted from where people work to how much control they have over their work experience. Trust and flexibility aren't perks — they're performance infrastructure.</p>
+    </div>
+    <div class="theme-card">
+      <div class="theme-num">04</div>
+      <h3>The office just got a new job description</h3>
+      <p>The office is no longer a default location. It's a purposeful destination — designed around the work that benefits most from presence: connection, collaboration, culture, and creative collision.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CALLOUT STRIP -->
+<div class="callout-strip">
+  <div>
+    <h2>The AI wasn't the author.<br>I was. The AI was the thought partner.</h2>
+    <p>Every strategic decision in this project — the themes, the structure, the brand — came from Yester. Claude's role was to listen deeply, reflect accurately, and help organize what was already there into something usable.</p>
+  </div>
+  <div class="callout-badge">
+    <strong>1</strong>
+    <span>Working Session</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-logo">CBRE</div>
+  <div class="f-note">Confidential &amp; Proprietary &nbsp;|&nbsp; © 2026 CBRE, Inc. &nbsp;|&nbsp; Americas Consulting — WX Practice</div>
+</footer>
+
+</body>
+</html>
